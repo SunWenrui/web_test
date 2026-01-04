@@ -1,0 +1,1410 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>后台配置 - 行为与勋章</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #0ea5e9;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #1f2937;
+      --success: #22c55e;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", "PingFang SC", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(14,165,233,0.12), transparent 25%),
+                  radial-gradient(circle at 80% 0%, rgba(56,189,248,0.15), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .shell {
+      max-width: 1180px;
+      margin: 32px auto 64px auto;
+      padding: 0 20px;
+    }
+    h1 { margin: 0 0 16px; font-size: 24px; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(255,255,255,0.02);
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+    .tab-btn {
+      flex: 1;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.18s ease;
+    }
+    .tab-btn.active {
+      background: linear-gradient(120deg, rgba(14,165,233,0.2), rgba(56,189,248,0.08));
+      color: #ecfeff;
+      border-color: rgba(14,165,233,0.4);
+      box-shadow: 0 10px 30px rgba(14,165,233,0.18);
+    }
+    .tab-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+    .panel {
+      margin-top: 16px;
+      padding: 20px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease;
+      font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color: rgba(14,165,233,0.6); box-shadow: 0 0 0 3px rgba(14,165,233,0.15); }
+    button.primary {
+      background: linear-gradient(120deg, #0ea5e9, #38bdf8);
+      border: none;
+      color: #0b1220;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    button.primary:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(14,165,233,0.35); }
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border 0.15s ease, color 0.15s ease;
+    }
+    button.ghost:hover { border-color: rgba(148,163,184,0.6); color: #e2e8f0; }
+    .section-title { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; }
+    .section-title h3 { margin: 0; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border-bottom: 1px solid var(--border); padding: 10px 8px; text-align: left; font-size: 14px; }
+    th { color: var(--muted); font-weight: 600; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .pill { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .pill.on { background: rgba(34,197,94,0.15); color: #bbf7d0; }
+    .pill.off { background: rgba(248,113,113,0.12); color: #fecdd3; }
+    .toggle { position: relative; width: 46px; height: 24px; }
+    .toggle input { display: none; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0; background: #1f2937; border-radius: 999px; transition: background 0.2s ease;
+    }
+    .slider::before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .toggle input:checked + .slider { background: #22c55e; }
+    .toggle input:checked + .slider::before { transform: translateX(22px); background: #e8ffe3; }
+    .icon-circle {
+      width: 36px; height: 36px; border-radius: 50%; background: rgba(14,165,233,0.12);
+      display: grid; place-items: center; overflow: hidden; border: 1px solid rgba(14,165,233,0.35);
+      margin-right: 6px;
+    }
+    .icon-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .tiers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .tier { padding: 6px 8px; border-radius: 8px; background: rgba(14,165,233,0.12); color: #c8f1ff; font-size: 12px; }
+    .empty { border: 1px dashed var(--border); padding: 16px; border-radius: 10px; text-align: center; color: var(--muted); }
+    .tier-list { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+    .tier-item { width: 120px; }
+    .tier-item input { text-align: center; padding: 8px; }
+    button.disabled { opacity: 0.5; cursor: not-allowed; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0b1220;
+      gap: 6px;
+    }
+    .user-form { display: flex; flex-direction: column; gap: 12px; }
+    .user-behaviors { display: flex; flex-wrap: wrap; gap: 8px; }
+    .behavior-entry {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #0c1426;
+    }
+    .behavior-entry label { margin: 0; white-space: nowrap; }
+    .behavior-entry input { width: 72px; padding: 6px 8px; text-align: right; }
+    .note { color: var(--muted); font-size: 13px; }
+    .sim-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #0c1426;
+      margin-bottom: 12px;
+    }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 700; }
+    .timeline {
+      position: relative;
+      height: 56px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(255,255,255,0.02);
+      margin-bottom: 8px;
+    }
+    .timeline .line {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      right: 10px;
+      height: 2px;
+      background: rgba(148,163,184,0.4);
+      transform: translateY(-50%);
+    }
+    .timeline .tick {
+      position: absolute;
+      width: 1px;
+      height: 10px;
+      background: rgba(148,163,184,0.5);
+      bottom: 4px;
+    }
+    .sim-table { width: 100%; border-collapse: collapse; }
+    .sim-table th, .sim-table td { border-bottom: 1px solid var(--border); padding: 6px 8px; font-size: 13px; }
+    .line-chart { border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,0.02); padding: 8px; }
+    .line-chart svg { width: 100%; height: 180px; }
+    .line-chart .grid-line { stroke: rgba(148,163,184,0.2); stroke-width: 0.5; }
+    .line-chart .axis { stroke: rgba(148,163,184,0.6); stroke-width: 1; }
+    .line-chart .plot { fill: none; stroke: url(#lineGradient); stroke-width: 2; }
+    .line-chart .dot { fill: #38bdf8; stroke: #0b1220; stroke-width: 1; }
+    .section-actions { display: flex; align-items: center; gap: 8px; }
+    .toggle-group { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .toggle-group button { border: none; background: transparent; color: var(--muted); padding: 8px 12px; cursor: pointer; }
+    .toggle-group button.active { background: rgba(14,165,233,0.18); color: #e2e8f0; }
+    @media (max-width: 640px) {
+      .tabs { flex-wrap: wrap; }
+      .tab-btn { flex: 1 1 45%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <h1>后台配置 · 行为 / 勋章</h1>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="behaviors">行为设定</button>
+      <button class="tab-btn" data-tab="medals">勋章数值</button>
+      <button class="tab-btn" data-tab="user-settings">用户设定</button>
+      <button class="tab-btn" data-tab="simulation">数值模拟</button>
+    </div>
+
+    <div class="panel" id="behaviors" role="tabpanel">
+      <div class="section-title">
+        <h3>自定义行为</h3>
+        <div class="section-actions">
+          <div style="color: var(--muted); font-size: 13px;">启用的行为才能在勋章/每日行为中引用</div>
+          <button type="button" class="ghost" id="clear-all-behaviors">清空</button>
+        </div>
+      </div>
+      <form id="behavior-form" class="grid">
+        <div>
+          <label for="behavior-name">行为名称</label>
+          <input id="behavior-name" name="name" placeholder="如：点赞、分享、连续登录" required />
+        </div>
+        <div>
+          <label for="behavior-note">备注</label>
+          <input id="behavior-note" name="note" placeholder="补充说明（可选）" />
+        </div>
+        <div>
+          <label for="behavior-limit">每日执行上限（可选）</label>
+          <input id="behavior-limit" name="dailyLimit" type="number" min="1" placeholder="如：100" />
+        </div>
+        <div style="display:flex; align-items:flex-end; gap:8px;">
+          <button type="submit" class="primary">+ 添加行为</button>
+          <button type="button" class="ghost" id="clear-behavior">重置</button>
+        </div>
+      </form>
+
+      <table aria-label="行为列表">
+        <thead>
+          <tr>
+            <th style="width:70px">ID</th>
+            <th style="width:30%">行为</th>
+            <th>备注</th>
+            <th style="width:140px">每日上限</th>
+            <th style="width:120px">状态</th>
+            <th style="width:160px">操作</th>
+          </tr>
+        </thead>
+        <tbody id="behavior-table"></tbody>
+      </table>
+      <div id="behavior-empty" class="empty" style="display:none;">暂无行为，先添加一条吧。</div>
+    </div>
+
+    <div class="panel" id="medals" role="tabpanel" style="display:none;">
+      <div class="section-title">
+        <h3>勋章数值配置</h3>
+        <div class="section-actions">
+          <div style="color: var(--muted); font-size: 13px;">档位为累积计算，达到高档位会自动视为完成前序档位</div>
+          <button type="button" class="ghost" id="clear-all-medals">清空</button>
+        </div>
+      </div>
+      <form id="medal-form">
+        <div class="grid">
+          <div>
+            <label for="medal-icon">勋章图标（URL）</label>
+            <input id="medal-icon" name="icon" placeholder="https://.../icon.png" />
+          </div>
+          <div>
+            <label for="medal-name">勋章名称</label>
+            <input id="medal-name" name="name" placeholder="如：点赞达人" required />
+          </div>
+        <div>
+          <label for="medal-note">备注</label>
+          <input id="medal-note" name="note" placeholder="补充说明（可选）" />
+        </div>
+        <div>
+          <label for="medal-behavior">关联行为</label>
+          <select id="medal-behavior" name="behavior" required>
+            <option value="" disabled selected>先选择启用中的行为</option>
+          </select>
+        </div>
+        <div>
+          <label for="medal-module">业务模块归属</label>
+          <select id="medal-module" name="module">
+            <option value="聊天">聊天</option>
+            <option value="语伴">语伴</option>
+            <option value="内容">内容</option>
+            <option value="直播">直播</option>
+            <option value="语聊">语聊</option>
+            <option value="课程">课程</option>
+            <option value="VIP">VIP</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+          <div>
+            <label for="medal-type">勋章类型</label>
+            <select id="medal-type" name="type">
+              <option value="regular" selected>常规勋章</option>
+              <option value="event">活动勋章</option>
+            </select>
+          </div>
+        </div>
+        <div class="section-title" style="margin-top:12px;">
+          <h3>档位设定</h3>
+          <div style="color: var(--muted); font-size: 13px;">常规勋章可追加至5档，活动勋章不支持追加</div>
+        </div>
+        <div id="tier-list" class="tier-list"></div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button type="button" class="ghost" id="add-tier">+ 追加档位</button>
+          <button type="submit" class="primary">保存勋章</button>
+        </div>
+      </form>
+
+      <div class="section-title" style="margin-top:18px;">
+        <h3>已配置勋章</h3>
+      </div>
+      <table aria-label="勋章列表">
+        <thead>
+          <tr>
+            <th style="width:70px">ID</th>
+            <th style="width:150px">勋章</th>
+            <th style="width:110px">类型</th>
+            <th style="width:110px">业务模块</th>
+            <th>关联行为</th>
+            <th style="width:220px">档位</th>
+            <th>备注</th>
+            <th style="width:120px">操作</th>
+          </tr>
+        </thead>
+        <tbody id="medal-table"></tbody>
+      </table>
+      <div id="medal-empty" class="empty" style="display:none;">还没有勋章，先添加一条配置。</div>
+    </div>
+
+    <div class="panel" id="user-settings" role="tabpanel" style="display:none;">
+      <div class="section-title">
+        <h3>用户设定（最多 10 个）</h3>
+        <div class="section-actions">
+          <div class="note">仅可填写已启用的行为对应的执行次数</div>
+          <button type="button" class="ghost" id="clear-all-users">清空</button>
+        </div>
+      </div>
+      <form id="user-form" class="user-form">
+        <div>
+          <label for="user-name">用户名称</label>
+          <input id="user-name" name="userName" placeholder="如：用户A" required />
+        </div>
+        <div class="user-behaviors" id="user-behavior-inputs"></div>
+        <div style="display:flex; align-items:flex-end; gap:8px;">
+          <button type="submit" class="primary">+ 添加用户</button>
+          <button type="button" class="ghost" id="clear-user">重置</button>
+        </div>
+      </form>
+      <table aria-label="用户列表" style="margin-top:16px;">
+        <thead>
+          <tr>
+            <th style="width:70px">ID</th>
+            <th style="width:150px">用户</th>
+            <th>行为执行次数</th>
+            <th style="width:120px">操作</th>
+          </tr>
+        </thead>
+        <tbody id="user-table"></tbody>
+      </table>
+      <div id="user-empty" class="empty" style="display:none;">暂无用户，先添加一条。</div>
+    </div>
+
+    <div class="panel" id="simulation" role="tabpanel" style="display:none;">
+      <div class="section-title">
+        <h3>数值模拟</h3>
+        <div class="section-actions">
+          <div class="note">根据用户设定的每日行为次数，预测勋章激活时间（天数为每日重复执行）</div>
+          <div class="toggle-group">
+            <button type="button" id="sim-mode-module" class="active">按模块分组</button>
+            <button type="button" id="sim-mode-global">全局展示</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div>
+          <label for="simulate-days">模拟天数</label>
+          <input id="simulate-days" type="number" min="1" max="365" value="30" />
+        </div>
+      </div>
+      <div id="simulation-output" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script>
+    // API基础URL
+    const API_BASE = window.location.origin;
+    
+    // 初始化Socket.IO连接
+    const socket = io();
+    
+    const state = {
+      behaviors: [],
+      medals: [],
+      users: [],
+    };
+    
+    // 加载所有数据
+    async function loadAllData() {
+      try {
+        const [behaviors, medals, users] = await Promise.all([
+          fetch(`${API_BASE}/api/behaviors`).then(r => r.json()),
+          fetch(`${API_BASE}/api/medals`).then(r => r.json()),
+          fetch(`${API_BASE}/api/users`).then(r => r.json())
+        ]);
+        state.behaviors = behaviors;
+        state.medals = medals;
+        state.users = users;
+        renderBehaviors();
+        renderMedals();
+        renderUsers();
+        syncBehaviorOptions();
+        renderSimulation();
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        alert('加载数据失败，请刷新页面重试');
+      }
+    }
+    
+    // WebSocket实时同步
+    socket.on('data-update', async (payload) => {
+      const { type, data } = payload;
+      console.log('收到数据更新:', type, data);
+      
+      if (type === 'behavior') {
+        const index = state.behaviors.findIndex(b => b.id === data.id);
+        if (index >= 0) {
+          state.behaviors[index] = data;
+        } else {
+          state.behaviors.push(data);
+        }
+        renderBehaviors();
+        syncBehaviorOptions();
+      } else if (type === 'behavior-delete') {
+        state.behaviors = state.behaviors.filter(b => b.id !== data.id);
+        renderBehaviors();
+        syncBehaviorOptions();
+      } else if (type === 'behavior-clear-all') {
+        state.behaviors = [];
+        renderBehaviors();
+        syncBehaviorOptions();
+      } else if (type === 'medal') {
+        const index = state.medals.findIndex(m => m.id === data.id);
+        if (index >= 0) {
+          state.medals[index] = data;
+        } else {
+          state.medals.push(data);
+        }
+        renderMedals();
+      } else if (type === 'medal-delete') {
+        state.medals = state.medals.filter(m => m.id !== data.id);
+        renderMedals();
+      } else if (type === 'medal-clear-all') {
+        state.medals = [];
+        renderMedals();
+      } else if (type === 'user') {
+        const index = state.users.findIndex(u => u.id === data.id);
+        if (index >= 0) {
+          state.users[index] = data;
+        } else {
+          state.users.push(data);
+        }
+        renderUsers();
+      } else if (type === 'user-delete') {
+        state.users = state.users.filter(u => u.id !== data.id);
+        renderUsers();
+      } else if (type === 'user-clear-all') {
+        state.users = [];
+        renderUsers();
+      }
+      renderSimulation();
+    });
+    
+    // 页面加载时获取数据
+    loadAllData();
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.addEventListener('click', () => {
+      if (btn.classList.contains('disabled')) return;
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+      document.getElementById(tab).style.display = 'block';
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }));
+
+    const behaviorForm = document.getElementById('behavior-form');
+    const behaviorTable = document.getElementById('behavior-table');
+    const behaviorEmpty = document.getElementById('behavior-empty');
+    const clearBehaviorBtn = document.getElementById('clear-behavior');
+
+    behaviorForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = behaviorForm.name.value.trim();
+      const note = behaviorForm.note.value.trim();
+      const dailyLimitRaw = behaviorForm.dailyLimit.value.trim();
+      const dailyLimit = dailyLimitRaw ? Number(dailyLimitRaw) : null;
+      if (!name) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/behaviors`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, note, dailyLimit, enabled: true })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || '创建失败');
+          return;
+        }
+        
+        const newBehavior = await response.json();
+        state.behaviors.push(newBehavior);
+        behaviorForm.reset();
+        renderBehaviors();
+        syncBehaviorOptions();
+      } catch (error) {
+        console.error('创建行为失败:', error);
+        alert('创建失败，请重试');
+      }
+    });
+
+    clearBehaviorBtn.addEventListener('click', () => behaviorForm.reset());
+
+    function renderBehaviors() {
+      behaviorTable.innerHTML = '';
+      if (!state.behaviors.length) {
+        behaviorEmpty.style.display = 'block';
+        renderSimulation();
+        return;
+      }
+      behaviorEmpty.style.display = 'none';
+      state.behaviors.forEach((b) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>#${b.id}</td>
+          <td><strong>${b.name}</strong></td>
+          <td>${b.note || '-'} </td>
+          <td>${b.dailyLimit ? b.dailyLimit : '不限'}</td>
+          <td>
+            <label class="toggle">
+              <input type="checkbox" ${b.enabled ? 'checked' : ''} data-id="${b.id}" class="behavior-toggle">
+              <span class="slider"></span>
+            </label>
+          </td>
+          <td>
+            <button class="ghost" data-edit="${b.id}">编辑</button>
+            <button class="ghost" data-remove="${b.id}">删除</button>
+          </td>
+        `;
+        behaviorTable.appendChild(tr);
+      });
+      behaviorTable.querySelectorAll('.behavior-toggle').forEach((el) => {
+        el.addEventListener('change', async (e) => {
+          const id = Number(e.target.dataset.id);
+          const behavior = state.behaviors.find((b) => b.id === id);
+          if (!behavior) return;
+          
+          try {
+            const response = await fetch(`${API_BASE}/api/behaviors/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...behavior,
+                enabled: e.target.checked
+              })
+            });
+            
+            if (response.ok) {
+              const updated = await response.json();
+              const index = state.behaviors.findIndex(b => b.id === id);
+              if (index >= 0) state.behaviors[index] = updated;
+              syncBehaviorOptions();
+              renderSimulation();
+            }
+          } catch (error) {
+            console.error('更新行为失败:', error);
+            e.target.checked = !e.target.checked; // 回滚
+          }
+        });
+      });
+      behaviorTable.querySelectorAll('[data-edit]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.dataset.edit);
+          const behavior = state.behaviors.find((b) => b.id === id);
+          if (!behavior) return;
+          
+          const name = prompt('行为名称', behavior.name) || behavior.name;
+          const note = prompt('备注', behavior.note) || behavior.note;
+          const limitInput = prompt('每日执行上限（留空为不限）', behavior.dailyLimit ?? '');
+          const dailyLimit = limitInput && limitInput.trim() ? Number(limitInput.trim()) : null;
+          const nameTrimmed = name.trim();
+          
+          try {
+            const response = await fetch(`${API_BASE}/api/behaviors/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...behavior,
+                name: nameTrimmed,
+                note: note.trim(),
+                dailyLimit: Number.isFinite(dailyLimit) ? dailyLimit : null
+              })
+            });
+            
+            if (!response.ok) {
+              const error = await response.json();
+              alert(error.error || '更新失败');
+              return;
+            }
+            
+            const updated = await response.json();
+            const index = state.behaviors.findIndex(b => b.id === id);
+            if (index >= 0) state.behaviors[index] = updated;
+            renderBehaviors();
+            syncBehaviorOptions();
+          } catch (error) {
+            console.error('更新行为失败:', error);
+            alert('更新失败，请重试');
+          }
+        });
+      });
+      behaviorTable.querySelectorAll('[data-remove]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.dataset.remove);
+          const behavior = state.behaviors.find((b) => b.id === id);
+          if (!behavior) return;
+          if (!confirm(`确定删除行为「${behavior.name}」吗？`)) return;
+          
+          try {
+            const response = await fetch(`${API_BASE}/api/behaviors/${id}`, {
+              method: 'DELETE'
+            });
+            
+            if (response.ok) {
+              state.behaviors = state.behaviors.filter((b) => b.id !== id);
+              renderBehaviors();
+              syncBehaviorOptions();
+              renderUserBehaviorInputs();
+              renderSimulation();
+            } else {
+              alert('删除失败');
+            }
+          } catch (error) {
+            console.error('删除行为失败:', error);
+            alert('删除失败，请重试');
+          }
+        });
+      });
+      renderSimulation();
+    }
+
+    // Medal form logic
+    const medalForm = document.getElementById('medal-form');
+    const medalTable = document.getElementById('medal-table');
+    const medalEmpty = document.getElementById('medal-empty');
+    const tierList = document.getElementById('tier-list');
+    const addTierBtn = document.getElementById('add-tier');
+    const behaviorSelect = document.getElementById('medal-behavior');
+    const typeSelect = document.getElementById('medal-type');
+    const moduleSelect = document.getElementById('medal-module');
+
+    const moduleColors = {
+      '聊天': { bg: '#a5b4fc', text: '#0b1220' },
+      '语伴': { bg: '#f9a8d4', text: '#4a044e' },
+      '内容': { bg: '#fcd34d', text: '#422006' },
+      '直播': { bg: '#f87171', text: '#450a0a' },
+      '语聊': { bg: '#34d399', text: '#064e3b' },
+      '课程': { bg: '#38bdf8', text: '#0c4a6e' },
+      'VIP': { bg: '#fbbf24', text: '#451a03' },
+      '其他': { bg: '#cbd5e1', text: '#0f172a' },
+    };
+
+    // User settings
+    const userForm = document.getElementById('user-form');
+    const userBehaviorInputs = document.getElementById('user-behavior-inputs');
+    const userTable = document.getElementById('user-table');
+    const userEmpty = document.getElementById('user-empty');
+    const clearUserBtn = document.getElementById('clear-user');
+    const clearAllBehaviorsBtn = document.getElementById('clear-all-behaviors');
+    const clearAllMedalsBtn = document.getElementById('clear-all-medals');
+    const clearAllUsersBtn = document.getElementById('clear-all-users');
+
+    // Simulation
+    const simulateDaysInput = document.getElementById('simulate-days');
+    const simulationOutput = document.getElementById('simulation-output');
+    const simModeModuleBtn = document.getElementById('sim-mode-module');
+    const simModeGlobalBtn = document.getElementById('sim-mode-global');
+    let simulationMode = 'module';
+
+    // 初始化默认数据（仅在数据库为空时）
+    async function seedDefaultData() {
+      if (state.behaviors.length === 0) {
+        const seedBehaviors = ['语伴数', '聊天回合数', '点赞数', '评论数', '被点赞数', '被评论数', '直播时长', '语聊时长', '翻译次数', '访客数', '成为VIP天数'];
+        for (const name of seedBehaviors) {
+          try {
+            await fetch(`${API_BASE}/api/behaviors`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, note: '', dailyLimit: null, enabled: true })
+            });
+          } catch (error) {
+            console.error('初始化默认行为失败:', error);
+          }
+        }
+        // 重新加载数据
+        await loadAllData();
+      }
+    }
+
+    async function seedDefaultMedals() {
+      if (state.medals.length) return;
+      const templates = [
+        { behavior: '语伴数', name: '语伴先锋', module: '语伴', tiers: [5, 25, 125] },
+        { behavior: '聊天回合数', name: '聊天达人', module: '聊天', tiers: [20, 100, 500] },
+        { behavior: '点赞数', name: '点赞能量', module: '内容', tiers: [10, 50, 250] },
+        { behavior: '评论数', name: '评论达人', module: '内容', tiers: [5, 30, 150] },
+        { behavior: '被点赞数', name: '人气上升', module: '内容', tiers: [10, 60, 300] },
+        { behavior: '被评论数', name: '互动磁场', module: '内容', tiers: [5, 25, 125] },
+        { behavior: '直播时长', name: '直播开拓者', module: '直播', tiers: [30, 150, 750] },
+        { behavior: '语聊时长', name: '语聊狂热', module: '语聊', tiers: [30, 150, 750] },
+        { behavior: '翻译次数', name: '翻译官', module: '课程', tiers: [5, 25, 125] },
+        { behavior: '访客数', name: '人气访客', module: '其他', tiers: [20, 100, 500] },
+        { behavior: '成为VIP天数', name: 'VIP尊享', module: 'VIP', tiers: [5, 15, 45] },
+      ];
+      
+      for (const tpl of templates) {
+        const behavior = state.behaviors.find((b) => b.name === tpl.behavior);
+        if (!behavior) continue;
+        const dup = state.medals.find((m) => m.type === 'regular' && m.behaviorId === behavior.id);
+        if (dup) continue;
+        
+        try {
+          await fetch(`${API_BASE}/api/medals`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              icon: '',
+              name: tpl.name,
+              note: '初始配置',
+              behaviorId: behavior.id,
+              module: tpl.module,
+              type: 'regular',
+              tiers: tpl.tiers
+            })
+          });
+        } catch (error) {
+          console.error('初始化默认勋章失败:', error);
+        }
+      }
+      
+      // 重新加载数据
+      await loadAllData();
+    }
+
+    function createTierInput(index, value) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'tier-item';
+      wrapper.innerHTML = `
+        <label>第${index + 1}档（完成次数）</label>
+        <input type="number" min="1" placeholder="如：10" data-tier-index="${index}" ${value ? `value="${value}"` : ''} required />
+      `;
+      return wrapper;
+    }
+
+    function ensureTierCount(count = 1) {
+      tierList.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const preset = i === 0 ? 5 : '';
+        tierList.appendChild(createTierInput(i, preset));
+      }
+    }
+
+    function setTierMode() {
+      const isEvent = typeSelect.value === 'event';
+      if (isEvent) {
+        ensureTierCount(1);
+        addTierBtn.classList.add('disabled');
+        addTierBtn.disabled = true;
+      } else {
+        if (!tierList.querySelectorAll('input').length) ensureTierCount(1);
+        addTierBtn.classList.remove('disabled');
+        addTierBtn.disabled = false;
+      }
+    }
+
+    typeSelect.addEventListener('change', setTierMode);
+
+    addTierBtn.addEventListener('click', () => {
+      const existing = tierList.querySelectorAll('input').length;
+      if (existing >= 5) return alert('最多5个档位');
+      const inputs = tierList.querySelectorAll('input');
+      const prevVal = Number(inputs[inputs.length - 1]?.value) || 0;
+      const nextVal = prevVal ? prevVal * 5 : 5;
+      tierList.appendChild(createTierInput(existing, nextVal));
+    });
+
+    medalForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const icon = medalForm.icon.value.trim();
+      const name = medalForm.name.value.trim();
+      const note = medalForm.note.value.trim();
+      const behaviorId = Number(medalForm.behavior.value);
+      const type = medalForm.type.value;
+      const module = moduleSelect.value;
+      const tiers = Array.from(tierList.querySelectorAll('input'))
+        .map((input) => Number(input.value))
+        .filter((v) => v > 0)
+        .slice(0, 5);
+      if (!behaviorId) return alert('请选择关联的行为');
+      if (!tiers.length) return alert('至少需要1个档位');
+      if (type === 'regular') {
+        const dup = state.medals.find((m) => m.type === 'regular' && m.behaviorId === behaviorId);
+        if (dup) {
+          return alert('该关联行为已存在常规勋章，不能重复创建');
+        }
+      }
+      const baseTiers = type === 'event' ? tiers.slice(0, 1) : tiers;
+      const sortedTiers = [...new Set(baseTiers)].sort((a, b) => a - b);
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/medals`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            icon,
+            name,
+            note,
+            behaviorId,
+            module,
+            type,
+            tiers: sortedTiers
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || '创建失败');
+          return;
+        }
+        
+        const newMedal = await response.json();
+        state.medals.push(newMedal);
+        medalForm.reset();
+        ensureTierCount(1);
+        setTierMode();
+        renderMedals();
+        medalForm.name.value = '';
+      } catch (error) {
+        console.error('创建勋章失败:', error);
+        alert('创建失败，请重试');
+      }
+    });
+
+    function renderMedals() {
+      medalTable.innerHTML = '';
+      if (!state.medals.length) {
+        medalEmpty.style.display = 'block';
+        return;
+      }
+      medalEmpty.style.display = 'none';
+      state.medals.forEach((m) => {
+        const behavior = state.behaviors.find((b) => b.id === m.behaviorId);
+        const moduleColor = moduleColors[m.module] || moduleColors['其他'];
+        const tr = document.createElement('tr');
+        const iconHtml = m.icon
+          ? `<div class="icon-circle"><img src="${m.icon}" alt="${m.name}" onerror="this.src=''; this.parentElement.style.background='rgba(148,163,184,0.12)';" /></div>`
+          : `<div class="icon-circle"><span style="color:#38bdf8; font-weight:700;">${m.name.slice(0,1) || '徽'}</span></div>`;
+        tr.innerHTML = `
+          <td>#${m.id}</td>
+          <td><div style="display:flex; align-items:center; gap:6px;">${iconHtml}<strong>${m.name}</strong></div></td>
+          <td>${m.type === 'event' ? '活动勋章' : '常规勋章'}</td>
+          <td><span class="badge" style="background:${moduleColor.bg}; color:${moduleColor.text};">${m.module || '其他'}</span></td>
+          <td>${behavior ? behavior.name : '已删除的行为'} ${behavior ? (behavior.enabled ? '<span class="pill on" style="margin-left:6px;">启用</span>' : '<span class="pill off" style="margin-left:6px;">停用</span>') : ''}</td>
+          <td>${m.tiers.map((t, i) => `<span class="tier">${i + 1}档 · ${t}次</span>`).join('')}</td>
+          <td>${m.note || '-'}</td>
+          <td><button class="ghost" data-remove-medal="${m.id}">删除</button></td>
+        `;
+        medalTable.appendChild(tr);
+      });
+      medalTable.querySelectorAll('[data-remove-medal]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.dataset.removeMedal);
+          const medal = state.medals.find((m) => m.id === id);
+          if (!medal) return;
+          if (!confirm(`确定删除勋章「${medal.name}」吗？`)) return;
+          
+          try {
+            const response = await fetch(`${API_BASE}/api/medals/${id}`, {
+              method: 'DELETE'
+            });
+            
+            if (response.ok) {
+              state.medals = state.medals.filter((m) => m.id !== id);
+              renderMedals();
+            } else {
+              alert('删除失败');
+            }
+          } catch (error) {
+            console.error('删除勋章失败:', error);
+            alert('删除失败，请重试');
+          }
+        });
+      });
+      renderSimulation();
+    }
+
+    function syncBehaviorOptions() {
+      const enabled = state.behaviors.filter((b) => b.enabled);
+      behaviorSelect.innerHTML = '<option value="" disabled selected>先选择启用中的行为</option>';
+      enabled.forEach((b) => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = b.name;
+        behaviorSelect.appendChild(opt);
+      });
+      behaviorSelect.disabled = !enabled.length;
+      renderUserBehaviorInputs();
+    }
+
+    behaviorSelect.addEventListener('change', () => {
+      if (!medalForm.name.value.trim()) {
+        const selected = behaviorSelect.options[behaviorSelect.selectedIndex];
+        medalForm.name.value = selected ? selected.textContent : '';
+      }
+    });
+
+    // Clear-all actions
+    clearAllBehaviorsBtn?.addEventListener('click', async () => {
+      if (!state.behaviors.length) return;
+      if (!confirm('确定清空所有行为吗？')) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/clear-all`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'behaviors' })
+        });
+        
+        if (response.ok) {
+          state.behaviors = [];
+          renderBehaviors();
+          syncBehaviorOptions();
+          renderUserBehaviorInputs();
+          renderSimulation();
+        }
+      } catch (error) {
+        console.error('清空失败:', error);
+        alert('清空失败，请重试');
+      }
+    });
+
+    clearAllMedalsBtn?.addEventListener('click', async () => {
+      if (!state.medals.length) return;
+      if (!confirm('确定清空所有勋章配置吗？')) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/clear-all`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'medals' })
+        });
+        
+        if (response.ok) {
+          state.medals = [];
+          renderMedals();
+          renderSimulation();
+        }
+      } catch (error) {
+        console.error('清空失败:', error);
+        alert('清空失败，请重试');
+      }
+    });
+
+    clearAllUsersBtn?.addEventListener('click', async () => {
+      if (!state.users.length) return;
+      if (!confirm('确定清空所有用户吗？')) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/clear-all`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'users' })
+        });
+        
+        if (response.ok) {
+          state.users = [];
+          renderUsers();
+        }
+      } catch (error) {
+        console.error('清空失败:', error);
+        alert('清空失败，请重试');
+      }
+    });
+
+    // User form logic
+    function renderUserBehaviorInputs() {
+      userBehaviorInputs.innerHTML = '';
+      const enabled = state.behaviors.filter((b) => b.enabled);
+      if (!enabled.length) {
+        const msg = document.createElement('div');
+        msg.className = 'note';
+        msg.textContent = '暂无启用的行为，先在“行为设定”中添加并启用。';
+        userBehaviorInputs.appendChild(msg);
+        return;
+      }
+      enabled.forEach((b) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'behavior-entry';
+        wrap.innerHTML = `
+          <label>${b.name}</label>
+          <input type="number" min="0" value="0" data-behavior-id="${b.id}" />
+        `;
+        userBehaviorInputs.appendChild(wrap);
+      });
+    }
+
+    function renderUsers() {
+      userTable.innerHTML = '';
+      if (!state.users.length) {
+        userEmpty.style.display = 'block';
+        renderSimulation();
+        return;
+      }
+      userEmpty.style.display = 'none';
+      state.users.forEach((u) => {
+        const tr = document.createElement('tr');
+        const behaviorTexts = [];
+        const enabledMap = new Map(state.behaviors.map((b) => [b.id, b]));
+        Object.entries(u.actions).forEach(([id, val]) => {
+          const b = enabledMap.get(Number(id));
+          const name = b ? b.name : '已删除的行为';
+          behaviorTexts.push(`<span class="tier">${name}：${val}</span>`);
+        });
+        tr.innerHTML = `
+          <td>#${u.id}</td>
+          <td>${u.name}</td>
+          <td style="display:flex; flex-wrap:wrap; gap:6px;">${behaviorTexts.join('')}</td>
+          <td><button class="ghost" data-remove-user="${u.id}">删除</button></td>
+        `;
+        userTable.appendChild(tr);
+      });
+      userTable.querySelectorAll('[data-remove-user]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.dataset.removeUser);
+          const user = state.users.find((u) => u.id === id);
+          if (!user) return;
+          if (!confirm(`确定删除用户「${user.name}」吗？`)) return;
+          
+          try {
+            const response = await fetch(`${API_BASE}/api/users/${id}`, {
+              method: 'DELETE'
+            });
+            
+            if (response.ok) {
+              state.users = state.users.filter((u) => u.id !== id);
+              renderUsers();
+            } else {
+              alert('删除失败');
+            }
+          } catch (error) {
+            console.error('删除用户失败:', error);
+            alert('删除失败，请重试');
+          }
+        });
+      });
+      renderSimulation();
+    }
+
+    userForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (state.users.length >= 10) {
+        alert('最多支持 10 个用户');
+        return;
+      }
+      const enabled = state.behaviors.filter((b) => b.enabled);
+      if (!enabled.length) {
+        alert('请先添加并启用行为，再创建用户');
+        return;
+      }
+      const name = userForm.userName.value.trim();
+      if (!name) return;
+      const actions = {};
+      userBehaviorInputs.querySelectorAll('input[data-behavior-id]').forEach((input) => {
+        const val = Number(input.value) || 0;
+        actions[input.dataset.behaviorId] = val;
+      });
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, actions })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || '创建失败');
+          return;
+        }
+        
+        const newUser = await response.json();
+        state.users.push(newUser);
+        userForm.reset();
+        renderUserBehaviorInputs();
+        renderUsers();
+      } catch (error) {
+        console.error('创建用户失败:', error);
+        alert('创建失败，请重试');
+      }
+    });
+
+    clearUserBtn.addEventListener('click', () => {
+      userForm.reset();
+      renderUserBehaviorInputs();
+    });
+
+    // Simulation rendering
+    function renderSimulation() {
+      if (!simulationOutput) return;
+      simulationOutput.innerHTML = '';
+      const days = Math.min(365, Math.max(1, Number(simulateDaysInput?.value) || 30));
+      if (simulateDaysInput) simulateDaysInput.value = days;
+      if (!state.users.length) {
+        const msg = document.createElement('div');
+        msg.className = 'empty';
+        msg.textContent = '暂无用户，请先在“用户设定”中添加。';
+        simulationOutput.appendChild(msg);
+        return;
+      }
+      if (!state.medals.length) {
+        const msg = document.createElement('div');
+        msg.className = 'empty';
+        msg.textContent = '暂无勋章配置，请先在“勋章数值”中添加。';
+        simulationOutput.appendChild(msg);
+        return;
+      }
+
+      const behaviorMap = new Map(state.behaviors.map((b) => [b.id, b]));
+      state.users.forEach((user) => {
+        const card = document.createElement('div');
+        card.className = 'sim-card';
+        const entries = [];
+        state.medals.forEach((m) => {
+          const behavior = behaviorMap.get(m.behaviorId);
+          const perDay = behavior && behavior.enabled ? (user.actions[m.behaviorId] || 0) : 0;
+          (m.tiers || []).forEach((tierValue, idx) => {
+            const tier = idx + 1;
+            const day = perDay > 0 ? Math.ceil(tierValue / perDay) : Infinity;
+            entries.push({
+              medal: m,
+              tier,
+              value: tierValue,
+              day,
+              perDay,
+              behaviorName: behavior ? behavior.name : '已删除的行为',
+              behaviorEnabled: behavior ? behavior.enabled : false,
+            });
+          });
+        });
+
+        const milestones = entries
+          .filter((e) => e.day !== Infinity && e.day <= days)
+          .sort((a, b) => a.day - b.day || a.medal.id - b.medal.id);
+
+        // Per-day highest tier per medal for tooltips/table
+        const dayDetails = Array.from({ length: days }, () => ({ newEntries: [] }));
+        milestones.forEach((m) => {
+          const idx = m.day - 1;
+          if (idx < 0 || idx >= days) return;
+          const existing = dayDetails[idx].newEntries.find((x) => x.medal.id === m.medal.id);
+          if (!existing || existing.tier < m.tier) {
+            if (existing) {
+              dayDetails[idx].newEntries = dayDetails[idx].newEntries.filter((x) => x.medal.id !== m.medal.id);
+            }
+            dayDetails[idx].newEntries.push(m);
+          }
+        });
+
+        const header = document.createElement('div');
+        header.className = 'sim-header';
+        const reachedCount = milestones.length;
+        header.innerHTML = `
+          <div>${user.name}</div>
+          <div class="note">模拟 ${days} 天 · 可激活 ${reachedCount} 个勋章数（按档位计）</div>
+        `;
+        card.appendChild(header);
+
+        // Build cumulative line chart (per day, tier counts)
+        const perDayGain = dayDetails.map((d) => d.newEntries.length);
+        const cumulative = [];
+        let run = 0;
+        perDayGain.forEach((v) => {
+          run += v;
+          cumulative.push(run);
+        });
+        const chart = document.createElement('div');
+        chart.className = 'line-chart';
+
+        if (!milestones.length) {
+          const empty = document.createElement('div');
+          empty.className = 'note';
+          empty.style.marginBottom = '4px';
+          empty.textContent = '在当前模拟天数内未激活任何勋章档位（可能是行为未启用或每日次数为 0）。';
+          card.appendChild(empty);
+        }
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 100 60');
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        grad.id = 'lineGradient';
+        grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%'); grad.setAttribute('x2', '0%'); grad.setAttribute('y2', '100%');
+        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop'); stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', '#38bdf8');
+        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop'); stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', '#0ea5e9');
+        grad.appendChild(stop1); grad.appendChild(stop2); defs.appendChild(grad); svg.appendChild(defs);
+
+        const axisX = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        axisX.setAttribute('x1', '0'); axisX.setAttribute('y1', '55'); axisX.setAttribute('x2', '100'); axisX.setAttribute('y2', '55'); axisX.setAttribute('class', 'axis');
+        const axisY = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        axisY.setAttribute('x1', '4'); axisY.setAttribute('y1', '0'); axisY.setAttribute('x2', '4'); axisY.setAttribute('y2', '55'); axisY.setAttribute('class', 'axis');
+        svg.appendChild(axisX); svg.appendChild(axisY);
+
+        const maxVal = Math.max(...cumulative, 1);
+        const pts = [];
+        for (let d = 1; d <= days; d++) {
+          const val = cumulative[d - 1] || 0;
+          const x = (d / days) * 100;
+          const y = 55 - (val / maxVal) * 50;
+          pts.push({ x, y, day: d, val, newEntries: dayDetails[d - 1].newEntries });
+        }
+
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', pts.map((p) => `${p.x},${p.y}`).join(' '));
+        polyline.setAttribute('class', 'plot');
+        svg.appendChild(polyline);
+
+        pts.forEach((p) => {
+          const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.setAttribute('r', '1.5'); dot.setAttribute('class', 'dot');
+          const tt = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          const newList = p.newEntries.map((e) => `${e.medal.name} · ${e.tier}档`).join('；');
+          tt.textContent = `第${p.day}天：累计 ${p.val}，本日新增：${newList || '无'}`;
+          dot.appendChild(tt);
+          svg.appendChild(dot);
+        });
+
+        chart.appendChild(svg);
+        card.appendChild(chart);
+
+        // Per-day table
+        const dayTable = document.createElement('table');
+        dayTable.className = 'sim-table';
+        dayTable.innerHTML = `
+          <thead>
+            <tr>
+              <th style="width:80px;">天数</th>
+              <th style="width:120px;">当日新增</th>
+              <th style="width:120px;">累计</th>
+              <th>新增勋章（最高档位）</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+        const dayBody = dayTable.querySelector('tbody');
+        dayDetails.forEach((d, idx) => {
+          const day = idx + 1;
+          const newList = d.newEntries.map((e) => `${e.medal.name} · ${e.tier}档`).join('，') || '-';
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>第 ${day} 天</td>
+            <td>${perDayGain[idx]}</td>
+            <td>${cumulative[idx]}</td>
+            <td>${newList}</td>
+          `;
+          dayBody.appendChild(row);
+        });
+        card.appendChild(dayTable);
+
+        // Grouped table by module
+        const grouped = {};
+        entries.forEach((m) => {
+          const module = m.medal.module || '其他';
+          if (!grouped[module]) grouped[module] = [];
+          grouped[module].push(m);
+        });
+
+        const renderEntryRows = (list, moduleLabel) => {
+          const table = document.createElement('table');
+          table.className = 'sim-table';
+          const moduleColor = moduleColors[moduleLabel] || moduleColors['其他'];
+          const thead = document.createElement('thead');
+          thead.innerHTML = `
+            <tr>
+              <th colspan="4">
+                <span class="badge" style="background:${moduleColor.bg}; color:${moduleColor.text};">${moduleLabel}</span>
+              </th>
+            </tr>
+            <tr>
+              <th>勋章</th>
+              <th>档位</th>
+              <th>完成天数</th>
+              <th>关联行为/日次数</th>
+            </tr>
+          `;
+          table.appendChild(thead);
+          const tbody = document.createElement('tbody');
+          list
+            .sort((a, b) => {
+              const dayA = a.day === Infinity ? Number.MAX_SAFE_INTEGER : a.day;
+              const dayB = b.day === Infinity ? Number.MAX_SAFE_INTEGER : b.day;
+              return dayA - dayB || a.medal.id - b.medal.id || a.tier - b.tier;
+            })
+            .forEach((m) => {
+              const row = document.createElement('tr');
+              const dayText = m.day === Infinity ? '无执行/不可达' : `第 ${m.day} 天`;
+              const perDayText = m.behaviorEnabled ? `${m.perDay} 次/日` : '未启用/0';
+              row.innerHTML = `
+                <td>#${m.medal.id} · ${m.medal.name}</td>
+                <td>${m.tier}档 · ${m.value}次</td>
+                <td>${dayText}</td>
+                <td>${m.behaviorName} ｜ ${perDayText}</td>
+              `;
+              tbody.appendChild(row);
+            });
+          table.appendChild(tbody);
+          return table;
+        };
+
+        if (simulationMode === 'module') {
+          Object.entries(grouped).forEach(([module, list]) => {
+            card.appendChild(renderEntryRows(list, module));
+          });
+        } else {
+          const all = Object.values(grouped).flat();
+          const table = renderEntryRows(all, '全部模块');
+          card.appendChild(table);
+        }
+
+        simulationOutput.appendChild(card);
+      });
+    }
+
+    simulateDaysInput?.addEventListener('input', renderSimulation);
+    simModeModuleBtn?.addEventListener('click', () => {
+      simulationMode = 'module';
+      simModeModuleBtn.classList.add('active');
+      simModeGlobalBtn.classList.remove('active');
+      renderSimulation();
+    });
+    simModeGlobalBtn?.addEventListener('click', () => {
+      simulationMode = 'global';
+      simModeGlobalBtn.classList.add('active');
+      simModeModuleBtn.classList.remove('active');
+      renderSimulation();
+    });
+
+    // Init defaults
+    ensureTierCount(1);
+    setTierMode();
+    
+    // 初始化默认数据
+    loadAllData().then(async () => {
+      await seedDefaultData();
+      // 检查是否需要初始化默认勋章
+      if (state.medals.length === 0 && state.behaviors.length > 0) {
+        await seedDefaultMedals();
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

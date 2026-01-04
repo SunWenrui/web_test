@@ -1,0 +1,8 @@
+node_modules/
+medal_system.db
+medal_system.db-journal
+*.log
+.DS_Store
+.env
+npm-debug.log*
+
